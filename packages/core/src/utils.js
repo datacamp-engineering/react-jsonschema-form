@@ -1158,6 +1158,26 @@ export function rangeSpec(schema) {
   return spec;
 }
 
+function recursivelyRemoveRequiredFromSchema(schema) {
+  const copyOfSchema = { ...schema };
+  const copyOfProperties = { ...schema.properties };
+  const propertyKeys = Object.keys(copyOfProperties);
+
+  delete copyOfSchema.required;
+
+  for (const key of propertyKeys) {
+    copyOfProperties[key] = { ...copyOfProperties[key] };
+    delete copyOfProperties[key].required;
+    if (copyOfProperties[key].items != null) {
+      copyOfProperties[key].items = recursivelyRemoveRequiredFromSchema(
+        copyOfProperties[key].items
+      );
+    }
+  }
+
+  return { ...copyOfSchema, properties: copyOfProperties };
+}
+
 export function getMatchingOption(formData, options, rootSchema) {
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
@@ -1199,9 +1219,9 @@ export function getMatchingOption(formData, options, rootSchema) {
         augmentedSchema = Object.assign({}, option, requiresAnyOf);
       }
 
-      // Remove the "required" field as it's likely that not all fields have
+      // Remove the "required" fields as it's likely that not all fields have
       // been filled in yet, which will mean that the schema is not valid
-      delete augmentedSchema.required;
+      augmentedSchema = recursivelyRemoveRequiredFromSchema(augmentedSchema);
 
       if (isValid(augmentedSchema, formData)) {
         return i;

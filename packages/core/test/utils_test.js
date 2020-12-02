@@ -27,6 +27,7 @@ import {
   mergeSchemas,
   getDisplayLabel,
   schemaRequiresTrueValue,
+  getMatchingOption,
 } from "../src/utils";
 import { createSandbox } from "./test_utils";
 
@@ -3712,6 +3713,175 @@ describe("utils", () => {
     });
     it("simply doesn't require true", () => {
       expect(schemaRequiresTrueValue({ type: "string" })).eql(false);
+    });
+  });
+
+  describe("getMatchingOption", () => {
+    describe("basic example", () => {
+      const options = Object.freeze([
+        {
+          type: "object",
+          properties: {
+            type: {
+              type: "string",
+              enum: ["One"],
+              default: "One",
+            },
+          },
+          required: ["type"],
+        },
+        {
+          type: "object",
+          properties: {
+            type: {
+              type: "string",
+              enum: ["Two"],
+              default: "Two",
+            },
+          },
+          required: ["type"],
+        },
+      ]);
+
+      it("returns undefined (default option) if nothing matches the schema", () => {
+        const data = { type: "Three" };
+
+        expect(getMatchingOption(data, options)).eql(undefined);
+      });
+
+      it("returns the expected option if it matches the schema", () => {
+        const data = { type: "Two" };
+
+        expect(getMatchingOption(data, options)).eql(1);
+      });
+    });
+
+    describe("partial form data", () => {
+      it("returns the expected option for a partial match", () => {
+        const options = Object.freeze([
+          {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["One"],
+                default: "One",
+              },
+              extraType: {
+                type: "string",
+                enum: ["extra"],
+                default: "extra",
+              },
+            },
+            required: ["type", "extraType"],
+          },
+        ]);
+        const data = { type: "One" };
+
+        expect(getMatchingOption(data, options)).eql(0);
+      });
+
+      it("disregards nested required properties", () => {
+        const options = Object.freeze([
+          {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["One"],
+                default: "One",
+              },
+              extraObject: {
+                type: "object",
+                properties: {
+                  extraProperty: {
+                    type: "string",
+                  },
+                },
+                required: ["extraProperty"],
+              },
+            },
+            required: ["type", "extraObject"],
+          },
+        ]);
+        const data = { type: "One", extraObject: {} };
+
+        expect(getMatchingOption(data, options)).eql(0);
+      });
+
+      it("disregards nested required properties (array)", () => {
+        const options = Object.freeze([
+          {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["One"],
+                default: "One",
+              },
+              extraArray: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    extraProperty: {
+                      type: "string",
+                    },
+                  },
+                  required: ["extraProperty"],
+                },
+                required: ["items"],
+              },
+            },
+            required: ["type", "extraArray"],
+          },
+        ]);
+        const data = { type: "One", extraArray: [] };
+
+        expect(getMatchingOption(data, options)).eql(0);
+      });
+
+      it("disregards nested required properties (recursive array)", () => {
+        const options = Object.freeze([
+          {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["One"],
+                default: "One",
+              },
+              extraArray: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    nestedArray: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          nestedProperty: {
+                            type: "string",
+                          },
+                        },
+                        required: ["nestedProperty"],
+                      },
+                      required: ["items"],
+                    },
+                  },
+                  required: ["nestedArray"],
+                },
+                required: ["items"],
+              },
+            },
+            required: ["type", "extraArray"],
+          },
+        ]);
+        const data = { type: "One", extraArray: [{ nestedArray: [{}] }] };
+
+        expect(getMatchingOption(data, options)).eql(0);
+      });
     });
   });
 });
