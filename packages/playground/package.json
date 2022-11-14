@@ -47,7 +47,7 @@
     "@rjsf/fluent-ui": "^2.3.0",
     "@rjsf/material-ui": "^2.3.0",
     "@rjsf/semantic-ui": "^2.3.0",
-    "ajv": "^6.7.0",
+    "ajv": "^8.11.2",
     "antd": "^4.3.5",
     "core-js": "^2.5.7",
     "dayjs": "^1.8.28",
