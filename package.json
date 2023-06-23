@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "prettier": "^1.18.2",
-    "lerna": "^3.18.3"
+    "lerna": "^7.0.2"
   },
   "prettier": {
     "jsxBracketSameLine": true,
@@ -28,7 +28,7 @@
   "license": "Apache-2.0",
   "homepage": "https://github.com/rjsf-team/react-jsonschema-form",
   "devDependencies": {
-    "husky": "^3.1.0"
+    "husky": "^8.0.3"
   },
   "husky": {
     "hooks": {
