@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "prettier": "^1.18.2",
-    "lerna": "^3.18.3"
+    "lerna": "^8.1.8"
   },
   "prettier": {
     "jsxBracketSameLine": true,
